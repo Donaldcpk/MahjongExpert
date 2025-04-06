@@ -548,6 +548,12 @@ const TileGenerator = {
      * @returns {Object} 包含手牌和聽牌的物件
      */
     generateHandWithWaitingTiles(difficulty) {
+        // 使用預設牌型的20%機率，使用動態生成的80%機率
+        if (Math.random() < 0.8) {
+            // 動態生成牌型
+            return this.generateDynamicHand(difficulty);
+        }
+        
         // 建立正確的基本型胡牌組合（4組面子+1對將牌）
         const handSets = {
             beginner: [
@@ -702,27 +708,24 @@ const TileGenerator = {
                         { id: 'dots_2', suit: 'dots', value: '2' }
                     ]
                 },
-                // 組合2 - 清一色，條子，多聽
+                // 組合2 - 清一色，條子
                 {
                     hand: [
                         { id: 'bamboo_1', suit: 'bamboo', value: '1' },
                         { id: 'bamboo_1', suit: 'bamboo', value: '1' },
+                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
                         { id: 'bamboo_2', suit: 'bamboo', value: '2' },
                         { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
                         { id: 'bamboo_4', suit: 'bamboo', value: '4' },
                         { id: 'bamboo_5', suit: 'bamboo', value: '5' },
+                        { id: 'bamboo_6', suit: 'bamboo', value: '6' },
                         { id: 'bamboo_7', suit: 'bamboo', value: '7' },
                         { id: 'bamboo_7', suit: 'bamboo', value: '7' },
                         { id: 'bamboo_7', suit: 'bamboo', value: '7' },
-                        { id: 'bamboo_9', suit: 'bamboo', value: '9' },
+                        { id: 'bamboo_8', suit: 'bamboo', value: '8' },
                         { id: 'bamboo_9', suit: 'bamboo', value: '9' }
                     ],
                     waiting: [
-                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
-                        { id: 'bamboo_6', suit: 'bamboo', value: '6' },
                         { id: 'bamboo_9', suit: 'bamboo', value: '9' }
                     ]
                 },
@@ -741,10 +744,9 @@ const TileGenerator = {
                         { id: 'character_8', suit: 'character', value: '8' },
                         { id: 'character_8', suit: 'character', value: '8' },
                         { id: 'character_8', suit: 'character', value: '8' },
-                        { id: 'character_6', suit: 'character', value: '6' }
+                        { id: 'character_9', suit: 'character', value: '9' }
                     ],
                     waiting: [
-                        { id: 'character_6', suit: 'character', value: '6' },
                         { id: 'character_9', suit: 'character', value: '9' }
                     ]
                 }
@@ -763,88 +765,271 @@ const TileGenerator = {
     },
 
     /**
-     * 生成聽牌題目
+     * 動態生成麻將手牌和聽牌
      * @param {string} difficulty 難度等級
-     * @param {number} maxWaitingTiles 最大聽牌數量，0表示不限制
-     * @returns {Object} 包含手牌和聽牌的題目
+     * @returns {Object} 包含手牌和聽牌的物件
      */
-    generatePuzzle(difficulty, maxWaitingTiles = 1) {
-        const settings = {
-            maxWaitingTiles: maxWaitingTiles
+    generateDynamicHand(difficulty) {
+        // 存儲已經生成的牌組，用於檢查是否重複（使用本地存儲）
+        const generatedHandsKey = 'mahjong_generated_hands';
+        let generatedHands = [];
+        
+        try {
+            const storedHands = localStorage.getItem(generatedHandsKey);
+            if (storedHands) {
+                generatedHands = JSON.parse(storedHands);
+                // 僅保留最近100個記錄
+                if (generatedHands.length > 100) {
+                    generatedHands = generatedHands.slice(-100);
+                }
+            }
+        } catch (e) {
+            console.error('無法讀取已生成的牌組記錄:', e);
+        }
+        
+        // 根據難度決定牌型特徵
+        const isAdvancedMode = difficulty === 'advanced';
+        const allowHonorTiles = difficulty !== 'beginner';
+        
+        // 清一色判定（高級模式下只用一種花色）
+        let suitTypes = ['dots', 'bamboo', 'character'];
+        
+        // 隨機選擇花色
+        const mainSuit = suitTypes[Math.floor(Math.random() * suitTypes.length)];
+        
+        // 高級模式只使用一種花色
+        if (isAdvancedMode) {
+            suitTypes = [mainSuit];
+        }
+        
+        // 重複生成牌型，直到找到不重複的有效牌型
+        for (let attempt = 0; attempt < 20; attempt++) {
+            // 開始構建牌型
+            let handTiles = [];
+            let winningTile = null;
+            let formedSets = 0;
+            let hasFoundPair = false;
+            
+            // 決定是否加入字牌
+            const includeHonorTiles = allowHonorTiles && Math.random() > 0.3;
+            const useSuits = includeHonorTiles ? [...suitTypes, 'honor'] : suitTypes;
+            
+            // 1. 隨機生成4組面子
+            while (formedSets < 4) {
+                // 選擇面子類型（順子或刻子）
+                const formTriplet = Math.random() < 0.5;
+                
+                // 選擇花色
+                let suit;
+                if (isAdvancedMode) {
+                    suit = mainSuit;
+                } else {
+                    suit = useSuits[Math.floor(Math.random() * useSuits.length)];
+                }
+                
+                // 生成面子
+                if (formTriplet) {
+                    // 生成刻子（三張相同的牌）
+                    let value;
+                    if (suit === 'honor') {
+                        const honorValues = ['east', 'south', 'west', 'north', 'red', 'green', 'white'];
+                        value = honorValues[Math.floor(Math.random() * honorValues.length)];
+                    } else {
+                        value = String(Math.floor(Math.random() * 9) + 1);
+                    }
+                    
+                    // 檢查這種牌還有沒有足夠多張可用（最多4張）
+                    const existingCount = handTiles.filter(t => t.id === `${suit}_${value}`).length;
+                    if (existingCount + 3 > 4) continue;
+                    
+                    // 添加三張相同的牌
+                    for (let i = 0; i < 3; i++) {
+                        handTiles.push({ id: `${suit}_${value}`, suit, value });
+                    }
+                    
+                    formedSets++;
+                } else if (suit !== 'honor') {
+                    // 生成順子（如1-2-3，僅數牌能形成順子）
+                    // 第一張牌的數值（1-7，因為需要連續3張）
+                    const startValue = Math.floor(Math.random() * 7) + 1;
+                    
+                    // 檢查這些牌是否還有足夠多張可用
+                    let canForm = true;
+                    for (let i = 0; i < 3; i++) {
+                        const val = startValue + i;
+                        const existingCount = handTiles.filter(t => t.id === `${suit}_${val}`).length;
+                        if (existingCount + 1 > 4) {
+                            canForm = false;
+                            break;
+                        }
+                    }
+                    
+                    if (!canForm) continue;
+                    
+                    // 添加三張連續的牌
+                    for (let i = 0; i < 3; i++) {
+                        const val = String(startValue + i);
+                        handTiles.push({ id: `${suit}_${val}`, suit, value: val });
+                    }
+                    
+                    formedSets++;
+                }
+            }
+            
+            // 2. 添加將牌（對子）
+            if (!hasFoundPair) {
+                let suit;
+                if (isAdvancedMode) {
+                    suit = mainSuit;
+                } else {
+                    suit = useSuits[Math.floor(Math.random() * useSuits.length)];
+                }
+                
+                let value;
+                if (suit === 'honor') {
+                    const honorValues = ['east', 'south', 'west', 'north', 'red', 'green', 'white'];
+                    value = honorValues[Math.floor(Math.random() * honorValues.length)];
+                } else {
+                    value = String(Math.floor(Math.random() * 9) + 1);
+                }
+                
+                // 檢查這種牌還有沒有足夠多張可用
+                const existingCount = handTiles.filter(t => t.id === `${suit}_${value}`).length;
+                if (existingCount + 1 < 4) {  // 需要兩張，但其中一張將是等待的牌
+                    handTiles.push({ id: `${suit}_${value}`, suit, value });
+                    // 等待的牌就是這對將牌中的第二張
+                    winningTile = { id: `${suit}_${value}`, suit, value };
+                    hasFoundPair = true;
+                }
+            }
+            
+            // 檢查是否已經有13張牌，並有明確的聽牌
+            if (handTiles.length === 13 && winningTile) {
+                // 檢查這個牌型是否已經出現過
+                const handSignature = this.generateHandSignature(handTiles);
+                
+                if (!generatedHands.includes(handSignature)) {
+                    // 保存這個新牌型
+                    generatedHands.push(handSignature);
+                    try {
+                        localStorage.setItem(generatedHandsKey, JSON.stringify(generatedHands));
+                    } catch (e) {
+                        console.error('無法保存生成的牌組記錄:', e);
+                    }
+                    
+                    // 返回生成的牌型
+                    return {
+                        hand: handTiles,
+                        waitingTiles: [winningTile]
+                    };
+                }
+            }
+        }
+        
+        // 如果多次嘗試都失敗，則回退到預定義的牌型
+        const fallbackSets = {
+            beginner: [
+                {
+                    hand: [
+                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_7', suit: 'bamboo', value: '7' },
+                        { id: 'bamboo_8', suit: 'bamboo', value: '8' },
+                        { id: 'bamboo_9', suit: 'bamboo', value: '9' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_2', suit: 'dots', value: '2' }
+                    ],
+                    waiting: [
+                        { id: 'dots_2', suit: 'dots', value: '2' }
+                    ]
+                }
+            ],
+            intermediate: [
+                {
+                    hand: [
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                        { id: 'character_5', suit: 'character', value: '5' },
+                        { id: 'character_5', suit: 'character', value: '5' },
+                        { id: 'character_5', suit: 'character', value: '5' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'honor_east', suit: 'honor', value: 'east' },
+                        { id: 'honor_east', suit: 'honor', value: 'east' },
+                        { id: 'honor_east', suit: 'honor', value: 'east' },
+                        { id: 'honor_west', suit: 'honor', value: 'west' }
+                    ],
+                    waiting: [
+                        { id: 'honor_west', suit: 'honor', value: 'west' }
+                    ]
+                }
+            ],
+            advanced: [
+                {
+                    hand: [
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_3', suit: 'dots', value: '3' },
+                        { id: 'dots_4', suit: 'dots', value: '4' },
+                        { id: 'dots_5', suit: 'dots', value: '5' },
+                        { id: 'dots_6', suit: 'dots', value: '6' },
+                        { id: 'dots_7', suit: 'dots', value: '7' },
+                        { id: 'dots_8', suit: 'dots', value: '8' },
+                        { id: 'dots_9', suit: 'dots', value: '9' },
+                        { id: 'dots_9', suit: 'dots', value: '9' },
+                        { id: 'dots_9', suit: 'dots', value: '9' },
+                        { id: 'dots_2', suit: 'dots', value: '2' }
+                    ],
+                    waiting: [
+                        { id: 'dots_2', suit: 'dots', value: '2' }
+                    ]
+                }
+            ]
         };
-        
-        // 嘗試生成符合要求的題目，最多嘗試100次
-        for (let i = 0; i < 100; i++) {
-            const puzzle = this.tryGeneratePuzzle(settings);
-            if (this.isValidDifficulty(puzzle, difficulty)) {
-                return puzzle;
-            }
-        }
-        
-        // 如果無法生成符合難度要求的題目，返回最後一次嘗試的結果
-        return this.tryGeneratePuzzle(settings);
-    },
 
-    /**
-     * 嘗試生成一個聽牌題目
-     * @param {Object} settings 設置參數
-     * @returns {Object} 包含手牌和聽牌的題目
-     */
-    tryGeneratePuzzle(settings) {
-        // 創建牌組副本以便操作
-        const allTiles = [...ALL_TILES];
-        this.shuffleArray(allTiles);
-        
-        // 初始化手牌
-        const handTiles = [];
-        
-        // 添加13張牌作為手牌
-        for (let i = 0; i < 13; i++) {
-            if (allTiles.length > 0) {
-                handTiles.push(allTiles.pop());
-            }
-        }
-        
-        // 計算聽牌
-        const waitingTiles = getWaitingTiles(handTiles);
-        
-        // 如果設置了最大聽牌數量且大於0，且當前聽牌超過這個數量，嘗試減少聽牌數量
-        if (settings.maxWaitingTiles > 0 && waitingTiles.length > settings.maxWaitingTiles) {
-            // 這裡可以實現一些邏輯來調整手牌，減少聽牌數量
-            // 為了簡單起見，這裡只是返回當前結果
-        }
-        
+        const fallbackSet = fallbackSets[difficulty][0];
         return {
-            handTiles: handTiles,
-            waitingTiles: waitingTiles
+            hand: fallbackSet.hand,
+            waitingTiles: fallbackSet.waiting
         };
     },
 
     /**
-     * 檢查題目是否符合指定的難度
-     * @param {Object} puzzle 題目
-     * @param {string} difficulty 難度等級
-     * @returns {boolean} 是否符合難度要求
+     * 生成手牌的唯一標識，用於檢查重複
+     * @param {Array} tiles 手牌
+     * @returns {string} 牌組的唯一標識
      */
-    isValidDifficulty(puzzle, difficulty) {
-        // 根據難度檢查聽牌數量
-        if (difficulty === 'beginner' || difficulty === 'intermediate') {
-            return puzzle.waitingTiles.length === 1;
-        } else if (difficulty === 'advanced') {
-            return puzzle.waitingTiles.length > 1;
-        }
-        return true;
-    },
-
-    /**
-     * 隨機打亂數組
-     * @param {Array} array 要打亂的數組
-     */
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
+    generateHandSignature(tiles) {
+        // 對牌進行排序
+        const sortedTiles = [...tiles].sort((a, b) => {
+            if (a.suit !== b.suit) {
+                // 按花色排序
+                const suitOrder = { dots: 0, bamboo: 1, character: 2, honor: 3 };
+                return suitOrder[a.suit] - suitOrder[b.suit];
+            }
+            
+            // 同花色內按數值排序
+            if (a.suit === 'honor') {
+                // 字牌特殊排序
+                const honorOrder = { east: 0, south: 1, west: 2, north: 3, red: 4, green: 5, white: 6 };
+                return honorOrder[a.value] - honorOrder[b.value];
+            } else {
+                // 數牌按數字排序
+                return parseInt(a.value) - parseInt(b.value);
+            }
+        });
+        
+        // 生成標識字符串
+        return sortedTiles.map(t => t.id).join('|');
     }
 };
 
