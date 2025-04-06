@@ -499,31 +499,74 @@ const TileGenerator = {
      * @returns {Object} 包含手牌和聽牌的物件
      */
     generateHandWithWaitingTiles(difficulty) {
-        // 創建預設手牌組合和聽牌（用於測試）
-        const defaultHand = [
-            { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-            { id: 'bamboo_2', suit: 'bamboo', value: '2' },
-            { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-            { id: 'character_1', suit: 'character', value: '1' },
-            { id: 'character_2', suit: 'character', value: '2' },
-            { id: 'character_3', suit: 'character', value: '3' },
-            { id: 'dots_1', suit: 'dots', value: '1' },
-            { id: 'dots_2', suit: 'dots', value: '2' },
-            { id: 'dots_3', suit: 'dots', value: '3' },
-            { id: 'honor_east', suit: 'honor', value: 'east' },
-            { id: 'honor_south', suit: 'honor', value: 'south' },
-            { id: 'honor_west', suit: 'honor', value: 'west' },
-            { id: 'honor_north', suit: 'honor', value: 'north' },
-        ];
+        // 根據難度創建不同的手牌組合
+        let defaultHand = [];
+        let defaultWaiting = [];
         
-        const defaultWaiting = [
-            { id: 'dots_4', suit: 'dots', value: '4' }
-        ];
-        
-        // 如果是高級難度，添加多個聽牌
-        if (difficulty === 'advanced') {
-            defaultWaiting.push({ id: 'dots_7', suit: 'dots', value: '7' });
-            defaultWaiting.push({ id: 'bamboo_6', suit: 'bamboo', value: '6' });
+        if (difficulty === 'beginner') {
+            // 初級難度 - 簡單的聽牌組合，主要集中在數牌
+            defaultHand = [
+                { id: 'bamboo_1', suit: 'bamboo', value: '1' },
+                { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                { id: 'bamboo_7', suit: 'bamboo', value: '7' },
+                { id: 'bamboo_8', suit: 'bamboo', value: '8' },
+                { id: 'bamboo_9', suit: 'bamboo', value: '9' },
+                { id: 'character_2', suit: 'character', value: '2' },
+                { id: 'character_2', suit: 'character', value: '2' },
+                { id: 'character_2', suit: 'character', value: '2' },
+                { id: 'dots_3', suit: 'dots', value: '3' },
+                { id: 'dots_4', suit: 'dots', value: '4' },
+                { id: 'dots_5', suit: 'dots', value: '5' }
+            ];
+            
+            defaultWaiting = [
+                { id: 'bamboo_6', suit: 'bamboo', value: '6' }
+            ];
+        } else if (difficulty === 'intermediate') {
+            // 中級難度 - 加入字牌
+            defaultHand = [
+                { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                { id: 'character_5', suit: 'character', value: '5' },
+                { id: 'character_6', suit: 'character', value: '6' },
+                { id: 'character_7', suit: 'character', value: '7' },
+                { id: 'dots_1', suit: 'dots', value: '1' },
+                { id: 'dots_1', suit: 'dots', value: '1' },
+                { id: 'dots_1', suit: 'dots', value: '1' },
+                { id: 'honor_east', suit: 'honor', value: 'east' },
+                { id: 'honor_east', suit: 'honor', value: 'east' },
+                { id: 'honor_west', suit: 'honor', value: 'west' },
+                { id: 'honor_west', suit: 'honor', value: 'west' }
+            ];
+            
+            defaultWaiting = [
+                { id: 'honor_east', suit: 'honor', value: 'east' }
+            ];
+        } else {
+            // 高級難度 - 複雜聽牌，多個可能的聽牌
+            defaultHand = [
+                { id: 'bamboo_1', suit: 'bamboo', value: '1' },
+                { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                { id: 'dots_2', suit: 'dots', value: '2' },
+                { id: 'dots_3', suit: 'dots', value: '3' },
+                { id: 'dots_4', suit: 'dots', value: '4' },
+                { id: 'character_3', suit: 'character', value: '3' },
+                { id: 'character_4', suit: 'character', value: '4' },
+                { id: 'character_5', suit: 'character', value: '5' },
+                { id: 'honor_red', suit: 'honor', value: 'red' },
+                { id: 'honor_red', suit: 'honor', value: 'red' },
+                { id: 'honor_green', suit: 'honor', value: 'green' },
+                { id: 'honor_green', suit: 'honor', value: 'green' }
+            ];
+            
+            defaultWaiting = [
+                { id: 'honor_red', suit: 'honor', value: 'red' },
+                { id: 'honor_green', suit: 'honor', value: 'green' }
+            ];
         }
         
         return {

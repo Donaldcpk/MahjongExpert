@@ -184,24 +184,9 @@ const UI = {
             tileElement.className = 'tile';
             tileElement.dataset.id = tile.id;
             
-            // 顯示牌的圖片或文字
+            // 直接使用圖片而不進行檢查 - 因為我們確認圖片存在
             const tilePath = `images/tiles/${tile.id}.png`;
-            
-            // 檢查牌圖片是否存在
-            fetch(tilePath, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        // 如果圖片存在，顯示圖片
-                        tileElement.innerHTML = `<img src="${tilePath}" alt="${tile.suit} ${tile.value}">`;
-                    } else {
-                        // 如果圖片不存在，顯示文字
-                        tileElement.textContent = this.formatTile(tile);
-                    }
-                })
-                .catch(() => {
-                    // 如果出錯，顯示文字
-                    tileElement.textContent = this.formatTile(tile);
-                });
+            tileElement.innerHTML = `<img src="${tilePath}" alt="${tile.suit} ${tile.value}">`;
             
             tilesContainer.appendChild(tileElement);
         });
@@ -231,20 +216,9 @@ const UI = {
                 option.className = 'option-tile';
                 option.dataset.id = tile.id;
                 
-                // 顯示牌的圖片或文字
+                // 直接使用圖片
                 const tilePath = `images/tiles/${tile.id}.png`;
-                
-                fetch(tilePath, { method: 'HEAD' })
-                    .then(response => {
-                        if (response.ok) {
-                            option.innerHTML = `<img src="${tilePath}" alt="${tile.suit} ${tile.value}">`;
-                        } else {
-                            option.textContent = this.formatTile(tile);
-                        }
-                    })
-                    .catch(() => {
-                        option.textContent = this.formatTile(tile);
-                    });
+                option.innerHTML = `<img src="${tilePath}" alt="${tile.suit} ${tile.value}">`;
                 
                 option.addEventListener('click', () => {
                     game.selectTile(tile.id);
@@ -261,20 +235,9 @@ const UI = {
                 option.className = 'option-tile';
                 option.dataset.id = tile.id;
                 
-                // 顯示牌的圖片或文字
+                // 直接使用圖片
                 const tilePath = `images/tiles/${tile.id}.png`;
-                
-                fetch(tilePath, { method: 'HEAD' })
-                    .then(response => {
-                        if (response.ok) {
-                            option.innerHTML = `<img src="${tilePath}" alt="${tile.suit} ${tile.value}">`;
-                        } else {
-                            option.textContent = this.formatTile(tile);
-                        }
-                    })
-                    .catch(() => {
-                        option.textContent = this.formatTile(tile);
-                    });
+                option.innerHTML = `<img src="${tilePath}" alt="${tile.suit} ${tile.value}">`;
                 
                 option.addEventListener('click', () => {
                     game.selectTile(tile.id);
