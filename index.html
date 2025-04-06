@@ -16,7 +16,8 @@
             
             <div class="player-input">
                 <label for="player-name">請輸入玩家名稱：</label>
-                <input type="text" id="player-name" placeholder="輸入您的名稱" maxlength="12">
+                <input type="text" id="player-name" placeholder="輸入您的名稱" maxlength="12" required>
+                <p id="name-error" class="error-message" style="display: none; color: red; font-size: 14px;">請輸入玩家名稱</p>
             </div>
             
             <div class="difficulty-selector">
@@ -37,6 +38,19 @@
                 <p>高級：從所有麻將牌中選擇多個正確答案，每個正確答案100分，時間限制60秒</p>
                 <p>答對可獲得加時獎勵：前10題每題+10秒，之後每題+5秒</p>
                 <p>注意：本遊戲使用香港麻將規則，14張牌為胡牌</p>
+            </div>
+            
+            <!-- 首頁排行榜 -->
+            <div class="leaderboard-container start-leaderboard">
+                <h3>排行榜</h3>
+                <div class="leaderboard-header">
+                    <span class="rank">排名</span>
+                    <span class="player">玩家</span>
+                    <span class="score">分數</span>
+                    <span class="difficulty">難度</span>
+                    <span class="date">日期</span>
+                </div>
+                <div id="start-leaderboard" class="leaderboard"></div>
             </div>
         </div>
         

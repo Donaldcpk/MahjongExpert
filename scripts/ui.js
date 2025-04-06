@@ -17,6 +17,8 @@ const UI = {
         confirmButton: null,
         feedbackMessage: null,
         playerNameInput: null,
+        nameError: null,
+        startLeaderboard: null,
         bgMusic: null,
         soundEffects: {
             correct: null,
@@ -39,6 +41,8 @@ const UI = {
         this.elements.confirmButton = document.getElementById('confirm-btn');
         this.elements.feedbackMessage = document.getElementById('feedback-message');
         this.elements.playerNameInput = document.getElementById('player-name');
+        this.elements.nameError = document.getElementById('name-error');
+        this.elements.startLeaderboard = document.getElementById('start-leaderboard');
         
         // 初始化音樂播放器
         this.elements.bgMusic = document.getElementById('bg-music');
@@ -50,6 +54,14 @@ const UI = {
         document.getElementById('start-btn').addEventListener('click', () => {
             const difficulty = this.elements.difficultySelect.value;
             const playerName = this.elements.playerNameInput.value.trim();
+            
+            // 驗證玩家名稱
+            if (!playerName) {
+                this.elements.nameError.style.display = 'block';
+                return;
+            } else {
+                this.elements.nameError.style.display = 'none';
+            }
             
             // 創建全局的Game對象，確保它在全局作用域可用
             window.game = new Game();
@@ -65,8 +77,47 @@ const UI = {
             game.confirmAnswer();
         });
 
-        // 初始顯示開始畫面
+        // 初始顯示開始畫面並載入排行榜
         this.showStartScreen();
+        this.loadLeaderboard();
+    },
+
+    // 載入排行榜資料並顯示在首頁和遊戲結束頁面
+    loadLeaderboard() {
+        const leaderboardData = localStorage.getItem('mahjong_leaderboard');
+        const leaderboard = leaderboardData ? JSON.parse(leaderboardData) : [];
+        
+        // 更新首頁排行榜
+        if (this.elements.startLeaderboard) {
+            this.updateLeaderboardDisplay(this.elements.startLeaderboard, leaderboard);
+        }
+    },
+    
+    // 更新排行榜顯示
+    updateLeaderboardDisplay(leaderboardElement, leaderboard) {
+        leaderboardElement.innerHTML = '';
+        
+        if (leaderboard.length === 0) {
+            // 如果沒有排行數據，顯示提示信息
+            const emptyRow = document.createElement('div');
+            emptyRow.className = 'leaderboard-row';
+            emptyRow.innerHTML = '<span class="no-data" style="grid-column: 1 / 6; text-align: center;">尚無數據</span>';
+            leaderboardElement.appendChild(emptyRow);
+            return;
+        }
+        
+        leaderboard.forEach((entry, index) => {
+            const row = document.createElement('div');
+            row.className = 'leaderboard-row';
+            row.innerHTML = `
+                <span class="rank">${index + 1}</span>
+                <span class="player">${entry.name || '訪客'}</span>
+                <span class="score">${entry.score}</span>
+                <span class="difficulty">${this.getDifficultyName(entry.difficulty)}</span>
+                <span class="date">${entry.date}</span>
+            `;
+            leaderboardElement.appendChild(row);
+        });
     },
 
     // 播放背景音樂
@@ -105,6 +156,7 @@ const UI = {
         this.elements.gameScreen.style.display = 'none';
         this.elements.gameOverScreen.style.display = 'none';
         this.stopBackgroundMusic();
+        this.loadLeaderboard(); // 重新載入排行榜
     },
 
     // 顯示遊戲界面
@@ -127,20 +179,7 @@ const UI = {
 
         // 更新排行榜
         const leaderboardElement = document.getElementById('leaderboard');
-        leaderboardElement.innerHTML = '';
-
-        leaderboard.forEach((entry, index) => {
-            const row = document.createElement('div');
-            row.className = 'leaderboard-row';
-            row.innerHTML = `
-                <span class="rank">${index + 1}</span>
-                <span class="player">${entry.name || '訪客'}</span>
-                <span class="score">${entry.score}</span>
-                <span class="difficulty">${this.getDifficultyName(entry.difficulty)}</span>
-                <span class="date">${entry.date}</span>
-            `;
-            leaderboardElement.appendChild(row);
-        });
+        this.updateLeaderboardDisplay(leaderboardElement, leaderboard);
     },
 
     // 獲取難度名稱
