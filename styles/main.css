@@ -60,6 +60,26 @@ body {
     margin-bottom: 20px;
 }
 
+.player-input {
+    margin: 20px 0;
+}
+
+.player-input label {
+    font-size: 18px;
+    margin-right: 10px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.player-input input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 250px;
+    max-width: 100%;
+}
+
 .difficulty-selector {
     margin: 20px 0;
 }
@@ -237,7 +257,7 @@ body {
 
 .leaderboard-header {
     display: grid;
-    grid-template-columns: 0.5fr 1fr 1fr 1fr;
+    grid-template-columns: 0.3fr 1fr 0.7fr 0.7fr 0.7fr;
     gap: 10px;
     padding: 10px;
     background-color: #4CAF50;
@@ -254,7 +274,7 @@ body {
 
 .leaderboard-row {
     display: grid;
-    grid-template-columns: 0.5fr 1fr 1fr 1fr;
+    grid-template-columns: 0.3fr 1fr 0.7fr 0.7fr 0.7fr;
     gap: 10px;
     padding: 10px;
     border-bottom: 1px solid #eee;
@@ -294,7 +314,11 @@ body {
     }
     
     .leaderboard-header, .leaderboard-row {
-        grid-template-columns: 0.3fr 1fr 0.8fr 1fr;
+        grid-template-columns: 0.2fr 0.8fr 0.6fr 0.6fr 0.6fr;
         font-size: 14px;
+    }
+    
+    .player-input input {
+        width: 100%;
     }
 } 

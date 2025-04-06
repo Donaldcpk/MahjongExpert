@@ -3,96 +3,40 @@
  * 負責管理遊戲狀態、計分系統、計時器和難度設定
  */
 
-class MahjongGame {
+class Game {
     constructor() {
-        // 遊戲設定
-        this.difficultySettings = {
-            easy: {
-                timeLimit: 60, // 秒
-                questionsCount: 10,
-                baseScore: 100,  // 每題100分
-                timeBonus: 2,  // 每剩餘1秒獎勵2分
-                difficultyMultiplier: 1,
-                optionsCount: 5,  // 初級只顯示5個選項
-                maxWaitingTiles: 1  // 初級只有一個正確答案
-            },
-            medium: {
-                timeLimit: 45,
-                questionsCount: 10,
-                baseScore: 200,  // 每題200分
-                timeBonus: 3,
-                difficultyMultiplier: 1,
-                optionsCount: 0,  // 0表示顯示所有選項
-                maxWaitingTiles: 1  // 中級只有一個正確答案
-            },
-            hard: {
-                timeLimit: 30,
-                questionsCount: 10,
-                baseScore: 100,  // 每個正確答案100分
-                timeBonus: 5,
-                difficultyMultiplier: 1,
-                optionsCount: 0,  // 0表示顯示所有選項
-                maxWaitingTiles: 0  // 0表示不限制等待牌數量
-            }
-        };
-
-        // 初始化遊戲狀態
-        this.reset();
-    }
-
-    /**
-     * 重置遊戲狀態
-     */
-    reset() {
-        this.currentDifficulty = null;
-        this.currentSettings = null;
-        this.currentPuzzle = null;
-        this.currentQuestion = 0;
-        this.totalQuestions = 0;
-        this.correctAnswers = 0;
         this.score = 0;
-        this.timeRemaining = 0;
         this.timer = null;
-        this.isGameActive = false;
-        this.gameStartTime = null;
-        this.gameEndTime = null;
-        this.onTimerUpdate = null;
-        this.onGameEnd = null;
-        this.currentCorrectTiles = new Set();
         this.timeLeft = 0;
         this.difficulty = 'beginner';
+        this.correctAnswers = 0; // 記錄連續答對題數
         this.currentHand = null;
         this.currentAnswers = [];
         this.selectedTiles = [];
-        this.needConfirmation = false;
+        this.isGameActive = false;
+        this.needConfirmation = false; // 控制是否需要確認
+        this.playerName = ''; // 儲存玩家名稱
     }
 
-    /**
-     * 開始新遊戲
-     * @param {string} difficulty 難度: 'easy', 'medium', 'hard'
-     * @param {Function} onTimerUpdate 計時器更新回調
-     * @param {Function} onGameEnd 遊戲結束回調
-     */
-    startGame(difficulty, onTimerUpdate, onGameEnd) {
+    startGame(difficulty, playerName) {
         this.stopGame();
         this.difficulty = difficulty;
+        this.playerName = playerName || '訪客'; // 如果沒有提供名稱，設為"訪客"
         this.score = 0;
         this.correctAnswers = 0;
         this.selectedTiles = [];
         this.isGameActive = true;
         
-        // 根據難度設定時間
+        // 統一設定初始時間為60秒
+        this.timeLeft = 60;
+        
+        // 根據難度設定確認模式
         switch (difficulty) {
             case 'beginner':
-                this.timeLeft = 60;
                 this.needConfirmation = false;
                 break;
             case 'intermediate':
-                this.timeLeft = 45;
-                this.needConfirmation = true;
-                break;
             case 'advanced':
-                this.timeLeft = 30;
                 this.needConfirmation = true;
                 break;
         }
@@ -110,13 +54,6 @@ class MahjongGame {
         UI.updateScoreDisplay(this.score);
         UI.updateTimerDisplay(this.timeLeft);
         UI.showGameInterface();
-
-        return {
-            timeLimit: this.timeLeft,
-            totalQuestions: this.totalQuestions,
-            currentQuestion: this.currentQuestion + 1, // 對用戶顯示從1開始
-            puzzle: this.currentPuzzle
-        };
     }
 
     stopGame() {
@@ -131,6 +68,7 @@ class MahjongGame {
         this.stopGame();
         const leaderboard = this.getLeaderboard();
         leaderboard.push({
+            name: this.playerName,
             score: this.score,
             date: new Date().toLocaleDateString(),
             difficulty: this.difficulty
@@ -276,65 +214,6 @@ class MahjongGame {
             }
         }, 1500);
     }
-
-    /**
-     * 儲存分數到排行榜
-     * @param {Object} scoreData 分數數據
-     */
-    saveScore(scoreData) {
-        // 從本地存儲獲取現有的排行榜數據
-        let rankings = localStorage.getItem('mahjong_rankings');
-        if (rankings) {
-            rankings = JSON.parse(rankings);
-        } else {
-            rankings = {
-                easy: [],
-                medium: [],
-                hard: []
-            };
-        }
-        
-        // 添加新的分數
-        rankings[scoreData.difficulty].push(scoreData);
-        
-        // 排序分數（從高到低）
-        rankings[scoreData.difficulty].sort((a, b) => b.score - a.score);
-        
-        // 限制每個難度的排行榜項目數量
-        const MAX_RANKINGS = 10;
-        if (rankings[scoreData.difficulty].length > MAX_RANKINGS) {
-            rankings[scoreData.difficulty] = rankings[scoreData.difficulty].slice(0, MAX_RANKINGS);
-        }
-        
-        // 保存到本地存儲
-        localStorage.setItem('mahjong_rankings', JSON.stringify(rankings));
-    }
-
-    /**
-     * 獲取排行榜數據
-     * @param {string} difficulty 難度
-     * @returns {Array} 排行榜數據
-     */
-    getRankings(difficulty) {
-        let rankings = localStorage.getItem('mahjong_rankings');
-        if (rankings) {
-            rankings = JSON.parse(rankings);
-            return rankings[difficulty] || [];
-        }
-        return [];
-    }
-
-    /**
-     * 格式化時間
-     * @param {number} seconds 秒數
-     * @returns {string} 格式化的時間字符串 (MM:SS)
-     */
-    static formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-    }
 }
 
-// 全局遊戲實例
-const Game = new MahjongGame(); 
+// 不在此處創建全局Game實例，而是在UI初始化時創建 
