@@ -1,0 +1,473 @@
+/* 基本樣式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+#app {
+    max-width: 100%;
+    min-height: 100vh;
+    margin: 0 auto;
+    position: relative;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* 通用按鈕樣式 */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    outline: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.primary-btn {
+    background-color: #4caf50;
+    color: white;
+    box-shadow: 0 4px 6px rgba(76, 175, 80, 0.3);
+}
+
+.primary-btn:hover {
+    background-color: #388e3c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(76, 175, 80, 0.4);
+}
+
+.secondary-btn {
+    background-color: #f1f1f1;
+    color: #333;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.secondary-btn:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.back-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+}
+
+.back-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* 屏幕樣式 */
+.screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* 首頁樣式 */
+#home-screen {
+    background: url('../images/mahjong-bg.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+
+#home-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 0;
+}
+
+#home-screen h1 {
+    font-size: 3.5rem;
+    margin-bottom: 2rem;
+    color: #2e7d32;
+    position: relative;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#home-screen .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 300px;
+}
+
+#home-screen .btn {
+    width: 100%;
+}
+
+/* 難度選擇樣式 */
+#difficulty-screen h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #2e7d32;
+}
+
+.difficulty-options {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.difficulty-card {
+    width: 200px;
+    height: 180px;
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.difficulty-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    border-color: #4caf50;
+}
+
+.difficulty-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #2e7d32;
+}
+
+.difficulty-card p {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* 遊戲畫面樣式 */
+.game-header {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 2rem;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timer, .score, .question-counter {
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.timer i, .score i {
+    margin-right: 0.5rem;
+    color: #2e7d32;
+}
+
+.mahjong-container {
+    width: 100%;
+    max-width: 800px;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.current-tiles {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    min-height: 100px;
+}
+
+.tile-options {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* 麻將牌樣式 */
+.mahjong-tile {
+    width: 50px;
+    height: 70px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 5px;
+    padding: 2px;
+}
+
+.mahjong-tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mahjong-tile.option {
+    background-color: #e8f5e9;
+    border: 2px solid #a5d6a7;
+}
+
+.mahjong-tile.correct {
+    background-color: #c8e6c9;
+    border: 2px solid #4caf50;
+}
+
+.mahjong-tile.wrong {
+    background-color: #ffcdd2;
+    border: 2px solid #e57373;
+}
+
+/* 麻將牌圖片樣式 */
+.tile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* 高級難度樣式 - 更緊湊的選項顯示 */
+.hard-mode .tile-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+    gap: 5px;
+}
+
+.hard-mode .mahjong-tile.option {
+    width: 45px;
+    height: 60px;
+    margin: 3px;
+}
+
+/* 結果畫面樣式 */
+#result-screen h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: #2e7d32;
+}
+
+.result-summary {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    min-width: 300px;
+}
+
+.result-summary p {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.result-summary span {
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+.result-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* 排行榜樣式 */
+#ranking-screen h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: #2e7d32;
+}
+
+.ranking-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    gap: 0.5rem;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    border: none;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.tab-btn.active {
+    background-color: #4caf50;
+    color: white;
+}
+
+.ranking-list {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    min-width: 400px;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 2rem;
+}
+
+.ranking-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.ranking-item:last-child {
+    border-bottom: none;
+}
+
+.ranking-position {
+    font-weight: bold;
+    color: #2e7d32;
+    width: 30px;
+}
+
+.ranking-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 1rem;
+}
+
+.ranking-score {
+    font-weight: bold;
+    color: #ff9800;
+}
+
+/* 幫助畫面樣式 */
+.help-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    max-width: 800px;
+    margin-bottom: 2rem;
+}
+
+.help-content h3 {
+    color: #2e7d32;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.help-content ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* 通知樣式 */
+.notification {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(33, 150, 243, 0.9);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    z-index: 1000;
+    transition: top 0.5s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+}
+
+.notification.show {
+    top: 20px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .difficulty-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .game-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .mahjong-container {
+        padding: 1rem;
+    }
+    
+    .difficulty-card {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .ranking-list {
+        min-width: 300px;
+    }
+    
+    .tile-options {
+        max-height: 300px;
+    }
+    
+    .mahjong-tile {
+        width: 40px;
+        height: 56px;
+    }
+} 

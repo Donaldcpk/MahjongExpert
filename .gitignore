@@ -1,0 +1,32 @@
+# macOS 系統文件
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows 系統文件
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# IDE 與編輯器的配置文件
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Node.js (如果將來添加npm功能)
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# 日誌文件
+*.log
+
+# 臨時文件
+*.tmp
+*.swp
+*.bak 
