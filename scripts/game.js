@@ -59,6 +59,12 @@ class MahjongGame {
         this.onTimerUpdate = null;
         this.onGameEnd = null;
         this.currentCorrectTiles = new Set();
+        this.timeLeft = 0;
+        this.difficulty = 'beginner';
+        this.currentHand = null;
+        this.currentAnswers = [];
+        this.selectedTiles = [];
+        this.needConfirmation = false;
     }
 
     /**
@@ -68,204 +74,207 @@ class MahjongGame {
      * @param {Function} onGameEnd 遊戲結束回調
      */
     startGame(difficulty, onTimerUpdate, onGameEnd) {
-        // 重置遊戲狀態
-        this.reset();
-
-        // 設定遊戲參數
-        this.currentDifficulty = difficulty;
-        this.currentSettings = this.difficultySettings[difficulty];
-        this.totalQuestions = this.currentSettings.questionsCount;
-        this.timeRemaining = this.currentSettings.timeLimit;
-        this.onTimerUpdate = onTimerUpdate;
-        this.onGameEnd = onGameEnd;
+        this.stopGame();
+        this.difficulty = difficulty;
+        this.score = 0;
+        this.correctAnswers = 0;
+        this.selectedTiles = [];
         this.isGameActive = true;
-        this.gameStartTime = new Date();
+        
+        // 根據難度設定時間
+        switch (difficulty) {
+            case 'beginner':
+                this.timeLeft = 60;
+                this.needConfirmation = false;
+                break;
+            case 'intermediate':
+                this.timeLeft = 45;
+                this.needConfirmation = true;
+                break;
+            case 'advanced':
+                this.timeLeft = 30;
+                this.needConfirmation = true;
+                break;
+        }
 
-        // 生成第一個問題
+        this.timer = setInterval(() => {
+            this.timeLeft--;
+            UI.updateTimerDisplay(this.timeLeft);
+            
+            if (this.timeLeft <= 0) {
+                this.endGame();
+            }
+        }, 1000);
+
         this.generateNewQuestion();
-
-        // 啟動計時器
-        this.startTimer();
+        UI.updateScoreDisplay(this.score);
+        UI.updateTimerDisplay(this.timeLeft);
+        UI.showGameInterface();
 
         return {
-            timeLimit: this.timeRemaining,
+            timeLimit: this.timeLeft,
             totalQuestions: this.totalQuestions,
             currentQuestion: this.currentQuestion + 1, // 對用戶顯示從1開始
             puzzle: this.currentPuzzle
         };
     }
 
-    /**
-     * 啟動計時器
-     */
-    startTimer() {
-        clearInterval(this.timer);
-        this.timer = setInterval(() => {
-            this.timeRemaining--;
-            
-            // 更新UI
-            if (this.onTimerUpdate) {
-                this.onTimerUpdate(this.timeRemaining);
-            }
-            
-            // 檢查遊戲是否結束
-            if (this.timeRemaining <= 0) {
-                this.endGame();
-            }
-        }, 1000);
-    }
-
-    /**
-     * 生成新的問題
-     */
-    generateNewQuestion() {
-        // 增加當前問題計數
-        this.currentQuestion++;
-        
-        // 生成新的牌型
-        this.currentPuzzle = MahjongTiles.generatePuzzle(this.currentDifficulty);
-        
-        return {
-            currentQuestion: this.currentQuestion,
-            totalQuestions: this.totalQuestions,
-            puzzle: this.currentPuzzle
-        };
-    }
-
-    /**
-     * 檢查答案是否正確
-     * @param {Object} selectedTile 選擇的牌
-     * @returns {Object} 結果
-     */
-    checkAnswer(selectedTile) {
-        if (!this.isGameActive) {
-            return { isCorrect: false, message: '遊戲尚未開始' };
+    stopGame() {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
         }
-
-        // 檢查選擇的牌是否在聽牌列表中
-        const isCorrect = this.currentPuzzle.waitingTiles.some(
-            tile => tile.id === selectedTile.id
-        );
-        
-        // 計算得分
-        if (isCorrect) {
-            this.correctAnswers++;
-            
-            // 高級難度按正確答案數量計分
-            if (this.currentDifficulty === 'hard') {
-                // 如果是第一次點擊這個正確答案，才加分
-                if (!this.currentCorrectTiles) {
-                    this.currentCorrectTiles = new Set();
-                }
-                
-                if (!this.currentCorrectTiles.has(selectedTile.id)) {
-                    this.currentCorrectTiles.add(selectedTile.id);
-                    this.score += this.currentSettings.baseScore;
-                }
-            } else {
-                // 初級和中級難度固定分數
-                this.score += this.currentSettings.baseScore;
-            }
-        }
-        
-        let message;
-        if (isCorrect) {
-            message = '答對了！';
-            
-            // 高級難度提示還有其他正確答案
-            if (this.currentDifficulty === 'hard' && 
-                this.currentCorrectTiles.size < this.currentPuzzle.waitingTiles.length) {
-                message += `還有 ${this.currentPuzzle.waitingTiles.length - this.currentCorrectTiles.size} 個答案未找到`;
-            }
-        } else {
-            message = '答錯了，正確答案是: ' + 
-                this.currentPuzzle.waitingTiles.map(t => t.display).join('、');
-        }
-        
-        // 判斷是否需要進入下一題或結束遊戲
-        let shouldEndGame = false;
-        let nextQuestion = null;
-        let shouldShowNextQuestion = false;
-        
-        // 高級難度需要找出所有正確答案或點擊錯誤才進入下一題
-        if (this.currentDifficulty === 'hard') {
-            if (!isCorrect || (this.currentCorrectTiles && 
-                this.currentCorrectTiles.size >= this.currentPuzzle.waitingTiles.length)) {
-                shouldShowNextQuestion = true;
-            }
-        } else {
-            // 初級和中級只要回答就進入下一題
-            shouldShowNextQuestion = true;
-        }
-        
-        if (shouldShowNextQuestion) {
-            if (this.currentQuestion >= this.totalQuestions) {
-                shouldEndGame = true;
-            } else {
-                // 重置當前已選擇的正確牌
-                this.currentCorrectTiles = new Set();
-                nextQuestion = this.generateNewQuestion();
-            }
-        }
-        
-        if (shouldEndGame) {
-            this.endGame();
-        }
-        
-        return {
-            isCorrect,
-            message,
-            score: this.score,
-            nextQuestion,
-            shouldEndGame,
-            shouldShowNextQuestion
-        };
-    }
-
-    /**
-     * 結束遊戲
-     */
-    endGame() {
-        if (!this.isGameActive) {
-            return;
-        }
-        
-        // 停止計時器
-        clearInterval(this.timer);
         this.isGameActive = false;
-        this.gameEndTime = new Date();
-        
-        // 計算遊戲時間
-        const gameTimeInSeconds = Math.floor((this.gameEndTime - this.gameStartTime) / 1000);
-        
-        // 計算最終分數：剩餘時間獎勵 + 難度獎勵
-        const timeBonus = this.timeRemaining * this.currentSettings.timeBonus;
-        const finalScore = Math.floor((this.score + timeBonus) * this.currentSettings.difficultyMultiplier);
-        this.score = finalScore;
-        
-        // 計算正確率
-        const accuracy = (this.correctAnswers / this.totalQuestions) * 100;
-        
-        // 保存分數到排行榜
-        this.saveScore({
+    }
+
+    endGame() {
+        this.stopGame();
+        const leaderboard = this.getLeaderboard();
+        leaderboard.push({
             score: this.score,
-            accuracy: Math.round(accuracy),
-            difficulty: this.currentDifficulty,
-            date: new Date().toISOString(),
-            time: gameTimeInSeconds
+            date: new Date().toLocaleDateString(),
+            difficulty: this.difficulty
         });
         
-        // 觸發結束回調
-        if (this.onGameEnd) {
-            this.onGameEnd({
-                score: this.score,
-                accuracy: Math.round(accuracy),
-                correctAnswers: this.correctAnswers,
-                totalQuestions: this.totalQuestions,
-                timeSpent: gameTimeInSeconds,
-                difficulty: this.currentDifficulty
+        // 排序並只保留前10名
+        leaderboard.sort((a, b) => b.score - a.score);
+        if (leaderboard.length > 10) {
+            leaderboard.length = 10;
+        }
+        
+        localStorage.setItem('mahjong_leaderboard', JSON.stringify(leaderboard));
+        UI.showGameOver(this.score, leaderboard);
+    }
+
+    getLeaderboard() {
+        const leaderboardData = localStorage.getItem('mahjong_leaderboard');
+        return leaderboardData ? JSON.parse(leaderboardData) : [];
+    }
+
+    generateNewQuestion() {
+        // 生成新的手牌和聽牌組合
+        const handData = TileGenerator.generateHandWithWaitingTiles(this.difficulty);
+        this.currentHand = handData.hand;
+        this.currentAnswers = handData.waitingTiles;
+        this.selectedTiles = [];
+        
+        // 排序手牌（只在低級模式下）
+        if (this.difficulty === 'beginner') {
+            // 分類牌，字牌優先級最低
+            const sortOrder = {
+                'character': 0,
+                'dots': 1,
+                'bamboo': 2,
+                'honor': 3
+            };
+            
+            this.currentHand.sort((a, b) => {
+                // 先按照套牌類型排序
+                if (sortOrder[a.suit] !== sortOrder[b.suit]) {
+                    return sortOrder[a.suit] - sortOrder[b.suit];
+                }
+                
+                // 同套牌內按數字排序
+                if (a.suit === 'honor') {
+                    // 字牌按照東南西北中發白順序
+                    const honorOrder = {
+                        'east': 0, 'south': 1, 'west': 2, 'north': 3,
+                        'red': 4, 'green': 5, 'white': 6
+                    };
+                    return honorOrder[a.value] - honorOrder[b.value];
+                } else {
+                    // 數字牌按數字大小排序
+                    return parseInt(a.value) - parseInt(b.value);
+                }
             });
         }
+        
+        UI.displayHand(this.currentHand);
+        UI.setupAnswerOptions(this.difficulty, this.currentAnswers, this.needConfirmation);
+    }
+
+    selectTile(tileId) {
+        if (!this.isGameActive) return;
+        
+        // 根據難度處理選擇
+        if (this.difficulty === 'beginner') {
+            this.checkAnswer([tileId]);
+        } else {
+            // 中級和高級模式需要確認
+            const index = this.selectedTiles.indexOf(tileId);
+            if (index === -1) {
+                this.selectedTiles.push(tileId);
+            } else {
+                this.selectedTiles.splice(index, 1);
+            }
+            UI.updateSelectedTiles(this.selectedTiles);
+        }
+    }
+    
+    confirmAnswer() {
+        if (!this.isGameActive || !this.needConfirmation) return;
+        this.checkAnswer(this.selectedTiles);
+    }
+
+    checkAnswer(selectedTileIds) {
+        if (!this.isGameActive) return;
+        
+        let isCorrect = false;
+        let score = 0;
+        
+        switch (this.difficulty) {
+            case 'beginner':
+                // 初級模式只需一個答案正確
+                isCorrect = this.currentAnswers.some(answer => answer.id === selectedTileIds[0]);
+                score = isCorrect ? 100 : 0;
+                break;
+                
+            case 'intermediate':
+                // 中級模式只需一個答案且必須完全匹配
+                isCorrect = this.currentAnswers.some(answer => answer.id === selectedTileIds[0]);
+                score = isCorrect ? 200 : 0;
+                break;
+                
+            case 'advanced':
+                // 高級模式可能有多個正確答案，每個正確答案得分
+                const correctSelections = selectedTileIds.filter(id => 
+                    this.currentAnswers.some(answer => answer.id === id)
+                );
+                
+                const incorrectSelections = selectedTileIds.filter(id => 
+                    !this.currentAnswers.some(answer => answer.id === id)
+                );
+                
+                // 每個正確答案100分，但如有錯誤則總分為0
+                isCorrect = correctSelections.length > 0 && incorrectSelections.length === 0;
+                score = isCorrect ? correctSelections.length * 100 : 0;
+                break;
+        }
+        
+        // 更新分數
+        if (isCorrect) {
+            this.score += score;
+            this.correctAnswers++;
+            
+            // 增加時間（答對10題後每題只加5秒）
+            const timeBonus = this.correctAnswers <= 10 ? 10 : 5;
+            this.timeLeft += timeBonus;
+            
+            UI.updateScoreDisplay(this.score);
+            UI.updateTimerDisplay(this.timeLeft);
+            UI.showFeedback(true, `正確！得分 +${score}，時間 +${timeBonus}秒`);
+        } else {
+            this.correctAnswers = 0; // 重置連續答對題數
+            UI.showFeedback(false, '錯誤！正確答案是: ' + 
+                this.currentAnswers.map(tile => `${tile.suit} ${tile.value}`).join(', '));
+        }
+        
+        // 繼續生成新題目
+        setTimeout(() => {
+            if (this.isGameActive) {
+                this.generateNewQuestion();
+            }
+        }, 1500);
     }
 
     /**
