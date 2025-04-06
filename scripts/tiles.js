@@ -277,10 +277,11 @@ function canFormAllSetsAndTriples(tiles) {
             const tile1 = tileInfo.tile;
             const value1 = parseInt(tile1.value);
             
-            // 順子需要連續3張牌，所以第一張牌最大隻能是7
+            // 檢查所有可能的順子組合
+            // 情況1: 當前牌作為順子的第一張 (例如: 1-2-3)
             if (value1 <= 7) {
-                const tile2Id = tile1.id.replace(value1, value1 + 1);
-                const tile3Id = tile1.id.replace(value1, value1 + 2);
+                const tile2Id = tile1.id.replace(/\d+/, value1 + 1);
+                const tile3Id = tile1.id.replace(/\d+/, value1 + 2);
                 
                 // 檢查是否有後兩張牌
                 const hasSecond = tiles.some(t => t.id === tile2Id);
@@ -293,6 +294,54 @@ function canFormAllSetsAndTriples(tiles) {
                     remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile1.id), 1);
                     remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile2Id), 1);
                     remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile3Id), 1);
+                    
+                    // 遞迴檢查剩餘的牌
+                    if (canFormAllSetsAndTriples(remainingTiles)) {
+                        return true;
+                    }
+                }
+            }
+            
+            // 情況2: 當前牌作為順子的中間牌 (例如: 2-3-4，當前牌是3)
+            if (value1 >= 2 && value1 <= 8) {
+                const tile1Id = tile1.id.replace(/\d+/, value1 - 1);
+                const tile3Id = tile1.id.replace(/\d+/, value1 + 1);
+                
+                // 檢查是否有另外兩張牌
+                const hasFirst = tiles.some(t => t.id === tile1Id);
+                const hasThird = tiles.some(t => t.id === tile3Id);
+                
+                if (hasFirst && hasThird) {
+                    const remainingTiles = [...tiles];
+                    
+                    // 移除這個順子
+                    remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile1Id), 1);
+                    remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile1.id), 1);
+                    remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile3Id), 1);
+                    
+                    // 遞迴檢查剩餘的牌
+                    if (canFormAllSetsAndTriples(remainingTiles)) {
+                        return true;
+                    }
+                }
+            }
+            
+            // 情況3: 當前牌作為順子的最後一張 (例如: 3-4-5，當前牌是5)
+            if (value1 >= 3 && value1 <= 9) {
+                const tile1Id = tile1.id.replace(/\d+/, value1 - 2);
+                const tile2Id = tile1.id.replace(/\d+/, value1 - 1);
+                
+                // 檢查是否有前兩張牌
+                const hasFirst = tiles.some(t => t.id === tile1Id);
+                const hasSecond = tiles.some(t => t.id === tile2Id);
+                
+                if (hasFirst && hasSecond) {
+                    const remainingTiles = [...tiles];
+                    
+                    // 移除這個順子
+                    remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile1Id), 1);
+                    remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile2Id), 1);
+                    remainingTiles.splice(remainingTiles.findIndex(t => t.id === tile1.id), 1);
                     
                     // 遞迴檢查剩餘的牌
                     if (canFormAllSetsAndTriples(remainingTiles)) {
@@ -499,96 +548,96 @@ const TileGenerator = {
      * @returns {Object} 包含手牌和聽牌的物件
      */
     generateHandWithWaitingTiles(difficulty) {
-        // 根據難度生成不同的手牌組合
+        // 建立正確的基本型胡牌組合（4組面子+1對將牌）
         const handSets = {
             beginner: [
-                // 組合1 - 簡單的順子和刻子組合
+                // 組合1 - 單花色順子+刻子組合
                 {
                     hand: [
                         { id: 'bamboo_1', suit: 'bamboo', value: '1' },
                         { id: 'bamboo_2', suit: 'bamboo', value: '2' },
                         { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
                         { id: 'bamboo_7', suit: 'bamboo', value: '7' },
                         { id: 'bamboo_8', suit: 'bamboo', value: '8' },
                         { id: 'bamboo_9', suit: 'bamboo', value: '9' },
-                        { id: 'character_2', suit: 'character', value: '2' },
-                        { id: 'character_2', suit: 'character', value: '2' },
-                        { id: 'character_2', suit: 'character', value: '2' },
-                        { id: 'dots_3', suit: 'dots', value: '3' },
-                        { id: 'dots_4', suit: 'dots', value: '4' },
-                        { id: 'dots_5', suit: 'dots', value: '5' },
-                        { id: 'dots_7', suit: 'dots', value: '7' }
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_2', suit: 'dots', value: '2' }
                     ],
                     waiting: [
-                        { id: 'bamboo_6', suit: 'bamboo', value: '6' }
+                        { id: 'dots_2', suit: 'dots', value: '2' }
                     ]
                 },
-                // 組合2 - 等待兩頭的順子
+                // 組合2 - 混合順子等待
                 {
                     hand: [
-                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'character_2', suit: 'character', value: '2' },
+                        { id: 'character_3', suit: 'character', value: '3' },
                         { id: 'character_4', suit: 'character', value: '4' },
-                        { id: 'character_5', suit: 'character', value: '5' },
-                        { id: 'character_6', suit: 'character', value: '6' },
-                        { id: 'dots_2', suit: 'dots', value: '2' },
-                        { id: 'dots_3', suit: 'dots', value: '3' },
+                        { id: 'dots_5', suit: 'dots', value: '5' },
+                        { id: 'dots_5', suit: 'dots', value: '5' },
+                        { id: 'dots_5', suit: 'dots', value: '5' },
                         { id: 'dots_7', suit: 'dots', value: '7' },
                         { id: 'dots_7', suit: 'dots', value: '7' },
                         { id: 'dots_7', suit: 'dots', value: '7' },
-                        { id: 'dots_8', suit: 'dots', value: '8' },
-                        { id: 'dots_9', suit: 'dots', value: '9' }
+                        { id: 'dots_3', suit: 'dots', value: '3' }
                     ],
                     waiting: [
-                        { id: 'dots_1', suit: 'dots', value: '1' }
+                        { id: 'dots_3', suit: 'dots', value: '3' }
                     ]
                 },
-                // 組合3 - 邊張等待
+                // 組合3 - 兩面或邊張等待
                 {
                     hand: [
                         { id: 'character_1', suit: 'character', value: '1' },
                         { id: 'character_2', suit: 'character', value: '2' },
                         { id: 'character_3', suit: 'character', value: '3' },
-                        { id: 'character_4', suit: 'character', value: '4' },
                         { id: 'character_5', suit: 'character', value: '5' },
-                        { id: 'character_6', suit: 'character', value: '6' },
-                        { id: 'character_7', suit: 'character', value: '7' },
-                        { id: 'character_7', suit: 'character', value: '7' },
-                        { id: 'character_8', suit: 'character', value: '8' },
+                        { id: 'character_5', suit: 'character', value: '5' },
+                        { id: 'character_5', suit: 'character', value: '5' },
+                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
                         { id: 'bamboo_2', suit: 'bamboo', value: '2' },
                         { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
-                        { id: 'bamboo_5', suit: 'bamboo', value: '5' }
+                        { id: 'dots_2', suit: 'dots', value: '2' },
+                        { id: 'dots_3', suit: 'dots', value: '3' },
+                        { id: 'dots_4', suit: 'dots', value: '4' },
+                        { id: 'character_7', suit: 'character', value: '7' }
                     ],
                     waiting: [
-                        { id: 'character_9', suit: 'character', value: '9' }
+                        { id: 'character_7', suit: 'character', value: '7' }
                     ]
                 }
             ],
             intermediate: [
-                // 組合1 - 帶字牌的組合
+                // 組合1 - 帶字牌的全刻子組合
                 {
                     hand: [
                         { id: 'bamboo_2', suit: 'bamboo', value: '2' },
-                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
                         { id: 'character_5', suit: 'character', value: '5' },
-                        { id: 'character_6', suit: 'character', value: '6' },
-                        { id: 'character_7', suit: 'character', value: '7' },
+                        { id: 'character_5', suit: 'character', value: '5' },
+                        { id: 'character_5', suit: 'character', value: '5' },
                         { id: 'dots_1', suit: 'dots', value: '1' },
                         { id: 'dots_1', suit: 'dots', value: '1' },
                         { id: 'dots_1', suit: 'dots', value: '1' },
                         { id: 'honor_east', suit: 'honor', value: 'east' },
                         { id: 'honor_east', suit: 'honor', value: 'east' },
-                        { id: 'honor_west', suit: 'honor', value: 'west' },
+                        { id: 'honor_east', suit: 'honor', value: 'east' },
                         { id: 'honor_west', suit: 'honor', value: 'west' }
                     ],
                     waiting: [
-                        { id: 'honor_east', suit: 'honor', value: 'east' }
+                        { id: 'honor_west', suit: 'honor', value: 'west' }
                     ]
                 },
-                // 組合2 - 字牌刻子組合
+                // 組合2 - 混合字牌和順子
                 {
                     hand: [
                         { id: 'dots_3', suit: 'dots', value: '3' },
@@ -602,14 +651,14 @@ const TileGenerator = {
                         { id: 'character_9', suit: 'character', value: '9' },
                         { id: 'honor_south', suit: 'honor', value: 'south' },
                         { id: 'honor_south', suit: 'honor', value: 'south' },
-                        { id: 'honor_green', suit: 'honor', value: 'green' },
+                        { id: 'honor_south', suit: 'honor', value: 'south' },
                         { id: 'honor_green', suit: 'honor', value: 'green' }
                     ],
                     waiting: [
-                        { id: 'honor_south', suit: 'honor', value: 'south' }
+                        { id: 'honor_green', suit: 'honor', value: 'green' }
                     ]
                 },
-                // 組合3 - 混合花色組合
+                // 組合3 - 混合順子和刻子
                 {
                     hand: [
                         { id: 'dots_1', suit: 'dots', value: '1' },
@@ -619,87 +668,84 @@ const TileGenerator = {
                         { id: 'bamboo_4', suit: 'bamboo', value: '4' },
                         { id: 'bamboo_5', suit: 'bamboo', value: '5' },
                         { id: 'character_7', suit: 'character', value: '7' },
-                        { id: 'character_8', suit: 'character', value: '9' },
+                        { id: 'character_7', suit: 'character', value: '7' },
+                        { id: 'character_7', suit: 'character', value: '7' },
                         { id: 'honor_north', suit: 'honor', value: 'north' },
                         { id: 'honor_north', suit: 'honor', value: 'north' },
-                        { id: 'honor_red', suit: 'honor', value: 'red' },
-                        { id: 'honor_red', suit: 'honor', value: 'red' },
+                        { id: 'honor_north', suit: 'honor', value: 'north' },
                         { id: 'honor_red', suit: 'honor', value: 'red' }
                     ],
                     waiting: [
-                        { id: 'honor_north', suit: 'honor', value: 'north' }
+                        { id: 'honor_red', suit: 'honor', value: 'red' }
                     ]
                 }
             ],
             advanced: [
-                // 組合1 - 多個聽牌可能
-                {
-                    hand: [
-                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
-                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-                        { id: 'dots_2', suit: 'dots', value: '2' },
-                        { id: 'dots_3', suit: 'dots', value: '3' },
-                        { id: 'dots_4', suit: 'dots', value: '4' },
-                        { id: 'character_3', suit: 'character', value: '3' },
-                        { id: 'character_4', suit: 'character', value: '4' },
-                        { id: 'character_5', suit: 'character', value: '5' },
-                        { id: 'honor_red', suit: 'honor', value: 'red' },
-                        { id: 'honor_red', suit: 'honor', value: 'red' },
-                        { id: 'honor_green', suit: 'honor', value: 'green' },
-                        { id: 'honor_green', suit: 'honor', value: 'green' }
-                    ],
-                    waiting: [
-                        { id: 'honor_red', suit: 'honor', value: 'red' },
-                        { id: 'honor_green', suit: 'honor', value: 'green' }
-                    ]
-                },
-                // 組合2 - 複雜的多項聽牌
-                {
-                    hand: [
-                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
-                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
-                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
-                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
-                        { id: 'bamboo_7', suit: 'bamboo', value: '7' },
-                        { id: 'bamboo_8', suit: 'bamboo', value: '8' },
-                        { id: 'bamboo_9', suit: 'bamboo', value: '9' },
-                        { id: 'honor_white', suit: 'honor', value: 'white' },
-                        { id: 'honor_white', suit: 'honor', value: 'white' },
-                        { id: 'honor_east', suit: 'honor', value: 'east' },
-                        { id: 'honor_east', suit: 'honor', value: 'east' }
-                    ],
-                    waiting: [
-                        { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
-                        { id: 'honor_white', suit: 'honor', value: 'white' },
-                        { id: 'honor_east', suit: 'honor', value: 'east' }
-                    ]
-                },
-                // 組合3 - 三色組合
+                // 組合1 - 清一色，筒子
                 {
                     hand: [
                         { id: 'dots_1', suit: 'dots', value: '1' },
-                        { id: 'dots_2', suit: 'dots', value: '2' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
+                        { id: 'dots_1', suit: 'dots', value: '1' },
                         { id: 'dots_3', suit: 'dots', value: '3' },
+                        { id: 'dots_4', suit: 'dots', value: '4' },
+                        { id: 'dots_5', suit: 'dots', value: '5' },
+                        { id: 'dots_6', suit: 'dots', value: '6' },
+                        { id: 'dots_7', suit: 'dots', value: '7' },
+                        { id: 'dots_8', suit: 'dots', value: '8' },
+                        { id: 'dots_9', suit: 'dots', value: '9' },
+                        { id: 'dots_9', suit: 'dots', value: '9' },
+                        { id: 'dots_9', suit: 'dots', value: '9' },
+                        { id: 'dots_2', suit: 'dots', value: '2' }
+                    ],
+                    waiting: [
+                        { id: 'dots_2', suit: 'dots', value: '2' }
+                    ]
+                },
+                // 組合2 - 清一色，條子，多聽
+                {
+                    hand: [
                         { id: 'bamboo_1', suit: 'bamboo', value: '1' },
                         { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'character_4', suit: 'character', value: '4' },
-                        { id: 'character_5', suit: 'character', value: '5' },
-                        { id: 'character_6', suit: 'character', value: '6' },
-                        { id: 'honor_west', suit: 'honor', value: 'west' },
-                        { id: 'honor_west', suit: 'honor', value: 'west' },
-                        { id: 'honor_north', suit: 'honor', value: 'north' },
-                        { id: 'honor_north', suit: 'honor', value: 'north' },
-                        { id: 'honor_green', suit: 'honor', value: 'green' }
+                        { id: 'bamboo_2', suit: 'bamboo', value: '2' },
+                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                        { id: 'bamboo_3', suit: 'bamboo', value: '3' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_5', suit: 'bamboo', value: '5' },
+                        { id: 'bamboo_7', suit: 'bamboo', value: '7' },
+                        { id: 'bamboo_7', suit: 'bamboo', value: '7' },
+                        { id: 'bamboo_7', suit: 'bamboo', value: '7' },
+                        { id: 'bamboo_9', suit: 'bamboo', value: '9' },
+                        { id: 'bamboo_9', suit: 'bamboo', value: '9' }
                     ],
                     waiting: [
                         { id: 'bamboo_1', suit: 'bamboo', value: '1' },
-                        { id: 'honor_west', suit: 'honor', value: 'west' },
-                        { id: 'honor_north', suit: 'honor', value: 'north' },
-                        { id: 'honor_green', suit: 'honor', value: 'green' }
+                        { id: 'bamboo_4', suit: 'bamboo', value: '4' },
+                        { id: 'bamboo_6', suit: 'bamboo', value: '6' },
+                        { id: 'bamboo_9', suit: 'bamboo', value: '9' }
+                    ]
+                },
+                // 組合3 - 清一色，萬子
+                {
+                    hand: [
+                        { id: 'character_1', suit: 'character', value: '1' },
+                        { id: 'character_2', suit: 'character', value: '2' },
+                        { id: 'character_3', suit: 'character', value: '3' },
+                        { id: 'character_4', suit: 'character', value: '4' },
+                        { id: 'character_5', suit: 'character', value: '5' },
+                        { id: 'character_6', suit: 'character', value: '6' },
+                        { id: 'character_7', suit: 'character', value: '7' },
+                        { id: 'character_7', suit: 'character', value: '7' },
+                        { id: 'character_7', suit: 'character', value: '7' },
+                        { id: 'character_8', suit: 'character', value: '8' },
+                        { id: 'character_8', suit: 'character', value: '8' },
+                        { id: 'character_8', suit: 'character', value: '8' },
+                        { id: 'character_6', suit: 'character', value: '6' }
+                    ],
+                    waiting: [
+                        { id: 'character_6', suit: 'character', value: '6' },
+                        { id: 'character_9', suit: 'character', value: '9' }
                     ]
                 }
             ]
