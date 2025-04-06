@@ -1,20 +1,33 @@
 /**
- * 麻將聽牌練習遊戲主程序
- * 負責協調不同模組並初始化遊戲
+ * 麻將聽牌練習遊戲主入口
+ * 負責初始化遊戲和UI
  */
 
-// 確保DOM完全加載後再執行
+// 確保所有必要模塊已加載
 document.addEventListener('DOMContentLoaded', function() {
-    // 檢查瀏覽器兼容性
-    checkBrowserCompatibility();
+    // 初始化UI
+    if (typeof UI !== 'undefined' && typeof UI.init === 'function') {
+        UI.init();
+        console.log('UI模塊已初始化');
+    } else {
+        console.error('UI模塊加載失敗');
+    }
     
-    // 嘗試預加載麻將牌背景圖
-    preloadImages();
+    // 檢查TileGenerator是否可用
+    if (typeof TileGenerator === 'undefined') {
+        console.error('TileGenerator模塊加載失敗');
+    } else {
+        console.log('TileGenerator模塊已加載');
+    }
     
-    // 初始化遊戲日誌
-    initGameLog();
-    
-    console.log('麻將聽牌練習遊戲已初始化');
+    // 檢查Game類是否可用
+    if (typeof Game === 'undefined') {
+        console.error('Game類加載失敗');
+    } else {
+        console.log('Game類已加載');
+        // 提前創建一個全局game實例以避免引用錯誤
+        window.game = new Game();
+    }
 });
 
 /**

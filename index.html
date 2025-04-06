@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div id="app">
-        <!-- 首頁/開始畫面 -->
-        <div id="home-screen" class="screen active">
+    <div class="container">
+        <!-- 開始畫面 -->
+        <div id="start-screen" class="screen">
             <h1>麻神之路</h1>
             <p>提升您的麻將聽牌能力</p>
             
@@ -33,38 +33,15 @@
             <div class="rules">
                 <h3>遊戲規則</h3>
                 <p>初級：從5個選項中選擇1個正確答案，每題100分，時間限制60秒</p>
-                <p>中級：從所有麻將牌中選擇1個正確答案，每題200分，時間限制45秒</p>
-                <p>高級：從所有麻將牌中選擇多個正確答案，每個正確答案100分，時間限制30秒</p>
+                <p>中級：從所有麻將牌中選擇1個正確答案，每題200分，時間限制60秒</p>
+                <p>高級：從所有麻將牌中選擇多個正確答案，每個正確答案100分，時間限制60秒</p>
                 <p>答對可獲得加時獎勵：前10題每題+10秒，之後每題+5秒</p>
                 <p>注意：本遊戲使用香港麻將規則，14張牌為胡牌</p>
             </div>
         </div>
-
-        <!-- 選擇難度畫面 -->
-        <div id="difficulty-screen" class="screen">
-            <h2>選擇難度</h2>
-            <div class="difficulty-options">
-                <div class="difficulty-card" data-difficulty="easy">
-                    <h3>初級</h3>
-                    <p>簡單的聽牌型態，從5個選項中選1個正確答案，限時60秒</p>
-                    <p>每題100分</p>
-                </div>
-                <div class="difficulty-card" data-difficulty="medium">
-                    <h3>中級</h3>
-                    <p>中等難度牌型，從所有麻將牌中選1個正確答案，限時45秒</p>
-                    <p>每題200分</p>
-                </div>
-                <div class="difficulty-card" data-difficulty="hard">
-                    <h3>高級</h3>
-                    <p>複雜牌型，可能有多個正確答案，從所有麻將牌中作答，限時30秒</p>
-                    <p>每個正確答案100分</p>
-                </div>
-            </div>
-            <button id="back-from-difficulty" class="btn back-btn">返回</button>
-        </div>
-
+        
         <!-- 遊戲畫面 -->
-        <div id="game-screen" class="screen">
+        <div id="game-screen" class="screen" style="display: none;">
             <div class="game-header">
                 <div class="game-info">
                     <div class="timer-container">
@@ -87,73 +64,67 @@
             
             <button id="confirm-btn" class="btn" style="display: none;">確認答案</button>
         </div>
-
-        <!-- 結果畫面 -->
-        <div id="result-screen" class="screen">
+        
+        <!-- 遊戲結束畫面 -->
+        <div id="game-over-screen" class="screen" style="display: none;">
             <h2>遊戲結束</h2>
-            <div class="result-summary">
-                <p>難度: <span id="result-difficulty"></span></p>
-                <p>分數: <span id="result-score"></span></p>
-                <p>正確率: <span id="result-accuracy"></span>%</p>
-                <p>用時: <span id="result-time"></span></p>
+            
+            <div class="final-score">
+                <p>你的分數：<span id="final-score">0</span></p>
             </div>
-            <div class="result-actions">
-                <button id="play-again" class="btn primary-btn">再玩一次</button>
-                <button id="back-to-home" class="btn secondary-btn">返回首頁</button>
+            
+            <div class="leaderboard-container">
+                <h3>排行榜</h3>
+                <div class="leaderboard-header">
+                    <span class="rank">排名</span>
+                    <span class="player">玩家</span>
+                    <span class="score">分數</span>
+                    <span class="difficulty">難度</span>
+                    <span class="date">日期</span>
+                </div>
+                <div id="leaderboard" class="leaderboard"></div>
             </div>
-        </div>
-
-        <!-- 排行榜畫面 -->
-        <div id="ranking-screen" class="screen">
-            <h2>排行榜</h2>
-            <div class="ranking-tabs">
-                <button class="tab-btn active" data-tab="easy">初級</button>
-                <button class="tab-btn" data-tab="medium">中級</button>
-                <button class="tab-btn" data-tab="hard">高級</button>
-            </div>
-            <div class="ranking-list" id="ranking-list">
-                <!-- 排行榜項目將由JavaScript動態生成 -->
-            </div>
-            <button id="back-from-ranking" class="btn back-btn">返回</button>
-        </div>
-
-        <!-- 遊戲說明畫面 -->
-        <div id="help-screen" class="screen">
-            <h2>遊戲說明</h2>
-            <div class="help-content">
-                <h3>什麼是聽牌？</h3>
-                <p>在麻將中，聽牌指的是只差一張特定的牌就可以和牌的狀態。本遊戲幫助你練習識別不同牌型的聽牌情況。</p>
-                
-                <h3>如何玩</h3>
-                <ul>
-                    <li>系統會顯示一組麻將牌</li>
-                    <li>根據現有的牌，判斷還差哪一張牌可以聽牌</li>
-                    <li>從選項中選擇正確的牌</li>
-                </ul>
-                
-                <h3>難度說明</h3>
-                <ul>
-                    <li><strong>初級</strong>：從5個選項中選擇1個正確答案，每題100分</li>
-                    <li><strong>中級</strong>：從所有麻將牌中選擇1個正確答案，每題200分</li>
-                    <li><strong>高級</strong>：從所有麻將牌中選擇，可能有多個正確答案，每個正確答案100分</li>
-                </ul>
-                
-                <h3>分數計算</h3>
-                <p>基礎分數 + 剩餘時間獎勵 = 最終分數</p>
-                <p>剩餘時間獎勵：初級每秒2分，中級每秒3分，高級每秒5分</p>
-            </div>
-            <button id="back-from-help" class="btn back-btn">返回</button>
-        </div>
-
-        <!-- 通知提示 -->
-        <div id="notification" class="notification">
-            <span id="notification-message"></span>
+            
+            <button id="play-again-btn" class="btn">再玩一次</button>
         </div>
     </div>
-
+    
+    <!-- 音樂和音效 -->
+    <audio id="bg-music" preload="auto">
+        <!-- 背景音樂將由JavaScript動態載入 -->
+    </audio>
+    
+    <audio id="correct-sound" preload="auto">
+        <source src="sounds/correct.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="wrong-sound" preload="auto">
+        <source src="sounds/wrong.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="game-over-sound" preload="auto">
+        <source src="sounds/game-over.mp3" type="audio/mpeg">
+    </audio>
+    
     <script src="scripts/tiles.js"></script>
     <script src="scripts/game.js"></script>
     <script src="scripts/ui.js"></script>
     <script src="scripts/main.js"></script>
+    
+    <script>
+        // 動態載入背景音樂
+        function loadBackgroundMusic(url) {
+            const bgMusic = document.getElementById('bg-music');
+            if (bgMusic) {
+                bgMusic.src = url;
+            }
+        }
+        
+        // 初始化聲音控制
+        document.addEventListener('DOMContentLoaded', function() {
+            // 預設背景音樂位置
+            loadBackgroundMusic('sounds/background.mp3');
+        });
+    </script>
 </body>
 </html> 
